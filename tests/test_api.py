@@ -145,3 +145,54 @@ def test_inactive_link_still_resolves():
     r = client.get(f"/urls/r/{code}", follow_redirects=False)
     assert r.status_code in (302, 307)
     assert r.headers.get("location") == "https://active.example"
+
+def test_link_expiration_blocks_redirect():
+    token = _register("exp@x.pl")
+
+    r = client.post(
+        "/urls/shorten",
+        params={"target_url": "https://example.com", "expires_in_seconds": 1},
+        headers=_auth(token),
+    )
+    assert r.status_code == 200
+    code = r.json()["short_code"]
+    assert r.json()["expires_at"] is not None
+
+    import time
+    time.sleep(1.2)
+
+    r = client.get(f"/urls/r/{code}", follow_redirects=False)
+    assert r.status_code == 410
+    assert "expired" in r.json()["detail"].lower()
+
+def test_link_without_expiry_never_blocks():
+    token = _register("noexp@x.pl")
+    code = _shorten(token, "https://example.com/forever")
+
+    assert client.get(f"/urls/r/{code}", follow_redirects=False).status_code in (302, 307)
+
+    r = client.get(f"/urls/{code}/stats")
+    assert r.status_code == 200
+
+def test_expires_in_seconds_must_be_positive():
+    token = _register("badexp@x.pl")
+    r = client.post(
+        "/urls/shorten",
+        params={"target_url": "https://example.com", "expires_in_seconds": -5},
+        headers=_auth(token),
+    )
+    assert r.status_code == 422
+
+def test_expired_link_can_be_deleted_by_owner():
+    token = _register("expclean@x.pl")
+    r = client.post(
+        "/urls/shorten",
+        params={"target_url": "https://example.com", "expires_in_seconds": 1},
+        headers=_auth(token),
+    )
+    code = r.json()["short_code"]
+
+    import time
+    time.sleep(1.2)
+    r = client.delete(f"/urls/{code}", headers=_auth(token))
+    assert r.status_code == 204

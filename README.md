@@ -55,6 +55,7 @@
 |---|---|
 | 🔐 **JWT Auth** | Register, login, token-based API access |
 | 🔗 **One-click shortening** | Paste URL, get short code |
+| ⏳ **Link expiration** | Optional `expires_in_seconds` per link — expired links return 410 Gone |
 | 📊 **Click tracking** | Each redirect increments counter |
 | 📋 **Dashboard** | Manage URLs: copy, delete, stats |
 | 🌙 **Dark UI** | Professional dark theme, responsive |

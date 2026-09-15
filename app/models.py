@@ -24,4 +24,5 @@ class URL(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     owner_id = Column(String, ForeignKey("users.id"), nullable=True)
+    expires_at = Column(DateTime, nullable=True)
     owner = relationship("User", back_populates="urls")

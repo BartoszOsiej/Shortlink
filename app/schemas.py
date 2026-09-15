@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Optional
+
 from pydantic import BaseModel
 
 class Token(BaseModel):
@@ -18,6 +21,7 @@ class URLOut(BaseModel):
     target_url: str
     clicks: int
     is_active: bool
+    expires_at: Optional[datetime] = None
 
 class URLStats(BaseModel):
     short_code: str
